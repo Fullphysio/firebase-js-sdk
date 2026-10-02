@@ -314,8 +314,8 @@ describe('getToken', () => {
     });
 
     describe('and the server returns an error', () => {
-      it('removes the FID from the DB if the server returns a 401 response', async () => {
-        generateAuthTokenRequestSpy.callsFake(async () => {
+      it('registers a new FID if the server returns a 401 response', async () => {
+        generateAuthTokenRequestSpy.onFirstCall().callsFake(async () => {
           throw ERROR_FACTORY.create(ErrorCode.REQUEST_FAILED, {
             requestName: 'Generate Auth Token',
             serverCode: 401,
@@ -324,12 +324,17 @@ describe('getToken', () => {
           });
         });
 
-        await expect(getToken(installations)).to.be.rejected;
-        await expect(get(installations.appConfig)).to.eventually.be.undefined;
+        await expect(getToken(installations)).to.eventually.equal(
+          NEW_AUTH_TOKEN
+        );
+        expect(createInstallationRequestSpy).to.be.calledOnce;
+        const entry = await get(installations.appConfig);
+        expect(entry?.fid).not.to.equal(FID);
+        expect(entry?.registrationStatus).to.equal(RequestStatus.COMPLETED);
       });
 
-      it('removes the FID from the DB if the server returns a 404 response', async () => {
-        generateAuthTokenRequestSpy.callsFake(async () => {
+      it('registers a new FID if the server returns a 404 response', async () => {
+        generateAuthTokenRequestSpy.onFirstCall().callsFake(async () => {
           throw ERROR_FACTORY.create(ErrorCode.REQUEST_FAILED, {
             requestName: 'Generate Auth Token',
             serverCode: 404,
@@ -338,8 +343,13 @@ describe('getToken', () => {
           });
         });
 
-        await expect(getToken(installations)).to.be.rejected;
-        await expect(get(installations.appConfig)).to.eventually.be.undefined;
+        await expect(getToken(installations)).to.eventually.equal(
+          NEW_AUTH_TOKEN
+        );
+        expect(createInstallationRequestSpy).to.be.calledOnce;
+        const entry = await get(installations.appConfig);
+        expect(entry?.fid).not.to.equal(FID);
+        expect(entry?.registrationStatus).to.equal(RequestStatus.COMPLETED);
       });
 
       it('does not remove the FID from the DB if the server returns any other response', async () => {
