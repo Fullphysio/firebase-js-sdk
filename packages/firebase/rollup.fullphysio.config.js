@@ -2,7 +2,11 @@ import rollupTypescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import builds from './rollup.config.js';
 
-const bundles = ['firebase-remote-config.js', 'firebase-messaging.js'];
+const bundles = [
+  'firebase-remote-config.js',
+  'firebase-messaging.js',
+  'firebase-functions.js'
+];
 
 const typescriptPluginCDN = rollupTypescriptPlugin({
   typescript,
