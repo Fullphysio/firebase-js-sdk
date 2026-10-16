@@ -16,7 +16,7 @@
  */
 
 import { expect } from 'chai';
-import { _errorForResponse } from './error';
+import { _errorForNetworkFailure, _errorForResponse } from './error';
 
 describe('Error handling', () => {
   describe('_errorForResponse()', () => {
@@ -34,6 +34,15 @@ describe('Error handling', () => {
       expect(err?.message).to.equal('internal [0]');
       expect(err?.code).to.equal('functions/internal');
       expect(err?.customData?.url).to.equal('http://wrong-url.com');
+    });
+    it('returns unavailable error with the fetch failure message if no response', () => {
+      const err = _errorForNetworkFailure(
+        new TypeError('Failed to fetch'),
+        'http://wrong-url.com'
+      );
+      expect(err.message).to.equal('Failed to fetch [0]');
+      expect(err.code).to.equal('functions/unavailable');
+      expect(err.customData?.url).to.equal('http://wrong-url.com');
     });
     it('returns internal error and httpStatus if 500', () => {
       const err = _errorForResponse(500, null, 'http://wrong-url.com');
